@@ -21,7 +21,7 @@ const renderSignupForm = () => `
   <head><title>Sign Up</title></head>
   <body>
     <h2>Sign Up</h2>
-    <form method="POST" action="/register">
+    <form method="POST" action="https://presents-boom.myshopify.com/apps/authproxy/register">
       <label>Email: <input type="email" name="email" required /></label><br />
       <label>Password: <input type="password" name="password" required /></label><br />
       <label>First Name: <input type="text" name="firstName" required /></label><br />
@@ -31,6 +31,7 @@ const renderSignupForm = () => `
   </body>
   </html>
 `;
+
 
 // ✅ Serve signup form on `/` for Shopify App Proxy
 app.get("/", (req, res) => {
