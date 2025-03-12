@@ -1,25 +1,18 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-require("dotenv").config();
+const fetch = require("node-fetch");
 
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-let users = {}; // In-memory storage for testing
+// Shopify store URL and App Proxy URL (encoded directly)
+const SHOPIFY_STORE_URL = "https://presents-boom.myshopify.com";
+const SHOPIFY_APP_PROXY_URL = `${SHOPIFY_STORE_URL}/apps/authproxy`;
 
-// Handle Shopify App Proxy requests
-app.all("/", (req, res) => {
-  console.log("Received request from Shopify App Proxy");
-
-  res.json({
-    success: true,
-    message: "Shopify App Proxy is working!",
-    shopifyRequest: req.headers,
-  });
-});
+let users = {}; // In-memory storage (temporary)
 
 // Serve Signup Form
 app.get("/signup", (req, res) => {
@@ -40,17 +33,37 @@ app.get("/signup", (req, res) => {
   `);
 });
 
-// Handle User Registration
-app.post("/register", (req, res) => {
+// Handle User Registration and Send Data to Shopify App Proxy
+app.post("/register", async (req, res) => {
   const { email, password, firstName, lastName } = req.body;
+
+  // Store user temporarily
   users[email] = { password, firstName, lastName };
   console.log(`User registered: ${email}`);
 
-  res.send(`<h2>Signup Successful!</h2><p>Welcome, ${email}.</p>`);
+  try {
+    // Send registration data to Shopify App Proxy
+    const response = await fetch(SHOPIFY_APP_PROXY_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, firstName, lastName }),
+    });
+
+    const data = await response.json();
+    console.log("Response from Shopify App Proxy:", data);
+
+    if (data.success) {
+      res.send(`<h2>Signup Successful!</h2><p>Welcome, ${email}. Shopify has been notified.</p>`);
+    } else {
+      res.send(`<h2>Signup Failed</h2><p>Error from Shopify: ${JSON.stringify(data)}</p>`);
+    }
+  } catch (error) {
+    console.error("Error sending data to Shopify:", error);
+    res.status(500).send(`<h2>Signup Failed</h2><p>Internal Server Error.</p>`);
+  }
 });
 
 // Start Server
-const PORT = process.env.PORT || 5000;
+const PORT = 5000;
 app.listen(PORT, () => console.log(`Signup Server running at http://localhost:${PORT}`));
-
 
