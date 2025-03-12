@@ -15,23 +15,31 @@ const SHOPIFY_APP_PROXY_URL = `${SHOPIFY_STORE_URL}/apps/authproxy`;
 
 let users = {}; // In-memory storage for user accounts
 
-// ✅ Serve Signup Form at `/signup`
+// ✅ Serve Signup Form at `/` (for Shopify Proxy) and `/signup` (direct access)
+const renderSignupForm = () => `
+  <html>
+  <head><title>Sign Up</title></head>
+  <body>
+    <h2>Sign Up</h2>
+    <form method="POST" action="/register">
+      <label>Email: <input type="email" name="email" required /></label><br />
+      <label>Password: <input type="password" name="password" required /></label><br />
+      <label>First Name: <input type="text" name="firstName" required /></label><br />
+      <label>Last Name: <input type="text" name="lastName" required /></label><br />
+      <button type="submit">Register</button>
+    </form>
+  </body>
+  </html>
+`;
+
+// ✅ Serve signup form on `/` for Shopify App Proxy
+app.get("/", (req, res) => {
+  res.send(renderSignupForm());
+});
+
+// ✅ Also serve the signup form on `/signup`
 app.get("/signup", (req, res) => {
-  res.send(`
-    <html>
-    <head><title>Sign Up</title></head>
-    <body>
-      <h2>Sign Up</h2>
-      <form method="POST" action="/register">
-        <label>Email: <input type="email" name="email" required /></label><br />
-        <label>Password: <input type="password" name="password" required /></label><br />
-        <label>First Name: <input type="text" name="firstName" required /></label><br />
-        <label>Last Name: <input type="text" name="lastName" required /></label><br />
-        <button type="submit">Register</button>
-      </form>
-    </body>
-    </html>
-  `);
+  res.send(renderSignupForm());
 });
 
 // ✅ Handle User Registration and Send Data to Shopify App Proxy
